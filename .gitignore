@@ -1,0 +1,71 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+
+# ===== Virtual environments =====
+venv/
+.venv/
+env/
+ENV/
+backend/deepseek_agent/venv/
+
+# ===== Environment files =====
+.env
+.env.*
+!.env.example
+
+# ===== Logs =====
+*.log
+logs/
+backend/deepseek_agent/logs/
+backend/deepseek_agent/llm_backend/logs/
+
+# ===== Uploads / generated files =====
+uploads/
+backend/deepseek_agent/uploads/
+backend/deepseek_agent/llm_backend/uploads/
+indexes/
+storage/
+tmp/
+temp/
+
+# ===== Frontend =====
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+frontend/DsAgentChat_web/node_modules/
+frontend/DsAgentChat_web/dist/
+
+# ===== IDE =====
+.vscode/
+.idea/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Jupyter =====
+.ipynb_checkpoints/
+
+# ===== Build / cache =====
+.cache/
+.eslintcache
+
+# ===== Local databases =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== Large generated artifacts =====
+*.faiss
+*.bin
+*.npy
+
