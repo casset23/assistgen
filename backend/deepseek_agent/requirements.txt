@@ -11,6 +11,9 @@ aiohttp>=3.8.0
 sentence_transformers
 faiss-cpu
 PyPDF2
+PyMuPDF
+paddleocr
+paddlepaddle
 python-docx
 python-multipart>=0.0.5
 loguru==0.7.2
