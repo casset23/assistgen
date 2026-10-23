@@ -252,10 +252,8 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'
-import axios from 'axios'
 
 const router = useRouter()
-const md = new MarkdownIt()
 const messagesContainer = ref<HTMLElement | null>(null)
 const userInput = ref('')
 const searchInput = ref('')

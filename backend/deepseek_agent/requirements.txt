@@ -11,6 +11,9 @@ aiohttp>=3.8.0
 sentence_transformers
 faiss-cpu
 PyPDF2
+PyMuPDF
+paddleocr
+paddlepaddle
 python-docx
 python-multipart>=0.0.5
 loguru==0.7.2
@@ -34,3 +37,4 @@ langchain_community==0.3.21
 graphrag==2.1.0
 langgraph-checkpoint-sqlite==2.0.6
 ipython==9.1.0
+rapidocr-onnxruntime>=1.2.3

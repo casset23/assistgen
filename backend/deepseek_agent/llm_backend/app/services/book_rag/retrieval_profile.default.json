@@ -1,0 +1,49 @@
+{
+  "profile_id": "default",
+  "low_value_section_keywords": ["参考文献", "价值导向", "哲学", "科学思想"],
+  "low_value_weak_hints": ["附录", "思考题", "习题", "练习题", "本章小结"],
+  "low_value_snippet_patterns": [
+    "\\[[0-9]+\\]\\s*",
+    "出版社",
+    "译\\.\\s*北京",
+    "参考文献"
+  ],
+  "query_stopwords": ["什么", "多少", "哪些", "怎么", "如何", "为什么", "吗", "呢", "呀", "是", "的", "和", "与", "及", "有", "有哪些", "有什么"],
+  "definition_cues": ["定义", "是指", "概念", "称为", "叫作", "可定义为"],
+  "feature_cues": ["特点", "特征", "优点", "缺点", "性质", "基本要求"],
+  "comparison_cues": ["区别", "不同", "联系", "比较", "相同点", "不同点"],
+  "comparison_patterns": ["区别在于", "不同在于", "相比", "相比之下", "前者", "后者", "二者", "两者", "一方面", "另一方面"],
+  "feature_patterns": ["其特点是", "主要特点", "具有", "表现为", "优点是", "缺点是"],
+  "definition_patterns": ["是", "是指", "可定义为", "称为", "叫作", "所谓"],
+  "subtype_definition_prefixes": ["气象", "综合", "组合", "惯性", "无线电", "卫星", "水声", "光学", "数据库匹配", "游移方位", "格林尼治格网", "参心", "地心"],
+  "compression": {
+    "min_content_chars": 140,
+    "max_compressed_chars": 360,
+    "max_selected_sentences": 3
+  },
+  "dedup": {
+    "similarity_threshold": 0.9,
+    "overlap_threshold": 0.78
+  },
+  "cross_encoder": {
+    "enabled": false,
+    "model_name": "BAAI/bge-reranker-base",
+    "candidate_top_n": 12,
+    "score_weight": 0.15
+  },
+  "rerank_weights": {
+    "exact_phrase_bonus_per_hit": 0.04,
+    "exact_phrase_bonus_max": 0.12,
+    "primary_phrase_hit_bonus": 0.05,
+    "title_phrase_hit_bonus": 0.03,
+    "definition_pattern_bonus": 0.08,
+    "comparison_pattern_bonus": 0.04,
+    "comparison_pattern_bonus_max": 0.1,
+    "feature_pattern_bonus": 0.03,
+    "feature_pattern_bonus_max": 0.08,
+    "phrase_structure_bonus_max": 0.18,
+    "main_subject_bonus": 0.08,
+    "subtype_definition_penalty": 0.06
+  }
+}
+

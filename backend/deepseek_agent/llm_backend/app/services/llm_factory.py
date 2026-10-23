@@ -1,8 +1,10 @@
-from typing import Union
 from app.core.config import settings, ServiceType
 from app.services.deepseek_service import DeepseekService
 from app.services.ollama_service import OllamaService
 from app.services.search_service import SearchService
+from app.services.book_rag_chat_service import BookRAGChatService
+
+
 class LLMFactory:
     @staticmethod
     def create_chat_service():
@@ -28,3 +30,18 @@ class LLMFactory:
     def create_search_service():
         """创建搜索服务实例"""
         return SearchService()
+
+    @staticmethod
+    def create_book_rag_chat_service(
+        document_type: str = "textbook",
+        noise_level: str = "medium",
+        answer_style: str = "balanced",
+        retrieval_mode: str = "balanced",
+    ):
+        """创建教材 RAG 问答服务实例"""
+        return BookRAGChatService(
+            document_type=document_type,
+            noise_level=noise_level,
+            answer_style=answer_style,
+            retrieval_mode=retrieval_mode,
+        )

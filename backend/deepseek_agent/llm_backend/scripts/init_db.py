@@ -21,9 +21,7 @@ async def init_db():
     try:
         logger.info("Initializing database...")
         async with engine.begin() as conn:
-            # 删除所有表（如果存在）
-            await conn.run_sync(Base.metadata.drop_all)
-            # 创建所有表
+            # Initialize missing tables without deleting existing conversations.
             await conn.run_sync(Base.metadata.create_all)
         logger.info("Database initialization completed successfully!")
     except Exception as e:

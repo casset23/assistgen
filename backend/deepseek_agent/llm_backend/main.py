@@ -1,10 +1,9 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Query, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 from app.services.llm_factory import LLMFactory
-from app.services.search_service import SearchService
 from fastapi.staticfiles import StaticFiles
 from datetime import datetime
 from pathlib import Path
@@ -21,11 +20,21 @@ from app.services.conversation_service import ConversationService
 import uuid
 import os
 from app.services.indexing_service import IndexingService
-import sys
-from app.lg_agent.lg_states import AgentState, InputState
-from app.lg_agent.utils import new_uuid
-from app.lg_agent.lg_builder import graph
-from langgraph.types import Command
+from app.services.embedding_service import EmbeddingService
+
+try:
+    from app.lg_agent.lg_states import InputState
+    from app.lg_agent.utils import new_uuid
+    from app.lg_agent.lg_builder import graph
+    from langgraph.types import Command
+    LANGGRAPH_AVAILABLE = True
+except Exception:
+    InputState = None
+    new_uuid = None
+    graph = None
+    Command = None
+    LANGGRAPH_AVAILABLE = False
+
 import json
 
 
@@ -68,6 +77,32 @@ class RAGChatRequest(BaseModel):
     messages: List[Dict[str, str]]
     index_id: str
     user_id: int
+
+class BookRAGIndexRequest(BaseModel):
+    json_path: str
+
+class BookRAGRetrieveRequest(BaseModel):
+    query: str
+    index_id: str
+    top_k: int = 5
+
+class BookRAGChatRequest(BaseModel):
+    query: str
+    index_id: str
+    top_k: int = 5
+    document_type: str = "textbook"
+    noise_level: str = "medium"
+    answer_style: str = "balanced"
+    retrieval_mode: str = "balanced"
+
+class BookRAGGenerateRequest(BaseModel):
+    query: str
+    index_id: str
+    top_k: int = 5
+    document_type: str = "textbook"
+    noise_level: str = "medium"
+    answer_style: str = "balanced"
+    retrieval_mode: str = "balanced"
 
 class CreateConversationRequest(BaseModel):
     user_id: int
@@ -225,6 +260,79 @@ async def rag_chat_endpoint(request: RAGChatRequest):
         logger.error(f"RAG chat error for user {request.user_id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/book-rag/index")
+async def book_rag_index_endpoint(request: BookRAGIndexRequest):
+    """从 book_rag_chunks.json 创建教材 RAG 索引"""
+    try:
+        embedding_service = EmbeddingService()
+        result = await embedding_service.create_embeddings_from_book_rag_chunks(request.json_path)
+        return result
+    except Exception as e:
+        logger.error(f"Book RAG index error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/book-rag/retrieve")
+async def book_rag_retrieve_endpoint(request: BookRAGRetrieveRequest):
+    """检索教材知识库 chunk"""
+    try:
+        book_rag_service = LLMFactory.create_book_rag_chat_service()
+        results = await book_rag_service.retrieve(
+            index_id=request.index_id,
+            query=request.query,
+            top_k=request.top_k,
+        )
+        return {
+            "status": "success",
+            "index_id": request.index_id,
+            "query": request.query,
+            "results": results,
+        }
+    except Exception as e:
+        logger.error(f"Book RAG retrieve error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/book-rag/generate")
+async def book_rag_generate_endpoint(request: BookRAGGenerateRequest):
+    """教材知识库非流式问答接口，便于联调与评测"""
+    try:
+        book_rag_service = LLMFactory.create_book_rag_chat_service(
+            document_type=request.document_type,
+            noise_level=request.noise_level,
+            answer_style=request.answer_style,
+            retrieval_mode=request.retrieval_mode,
+        )
+        result = await book_rag_service.generate(
+            query=request.query,
+            index_id=request.index_id,
+            top_k=request.top_k,
+        )
+        return {"status": "success", **result}
+    except Exception as e:
+        logger.error(f"Book RAG generate error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/book-rag/chat")
+async def book_rag_chat_endpoint(request: BookRAGChatRequest):
+    """教材知识库问答接口"""
+    try:
+        book_rag_service = LLMFactory.create_book_rag_chat_service(
+            document_type=request.document_type,
+            noise_level=request.noise_level,
+            answer_style=request.answer_style,
+            retrieval_mode=request.retrieval_mode,
+        )
+        return StreamingResponse(
+            book_rag_service.generate_stream(
+                query=request.query,
+                index_id=request.index_id,
+                top_k=request.top_k,
+            ),
+            media_type="text/event-stream"
+        )
+    except Exception as e:
+        logger.error(f"Book RAG chat error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/conversations")
 async def create_conversation(request: CreateConversationRequest):
     """创建新会话"""
@@ -290,6 +398,9 @@ async def langgraph_query(
     image: Optional[UploadFile] = File(None)
 ):
     """使用LangGraph处理用户查询，支持图片上传"""
+    if not LANGGRAPH_AVAILABLE:
+        raise HTTPException(status_code=503, detail="LangGraph 链路当前未启用")
+
     try:
         logger.info(f"Processing LangGraph query for user {user_id} and conversation {conversation_id}")
         
@@ -408,6 +519,9 @@ async def langgraph_query(
 @app.post("/api/langgraph/resume")
 async def langgraph_resume(request: LangGraphResumeRequest):
     """继续执行LangGraph流程"""
+    if not LANGGRAPH_AVAILABLE:
+        raise HTTPException(status_code=503, detail="LangGraph 链路当前未启用")
+
     try:
         logger.info(f"Resuming LangGraph query for user {request.user_id} with conversation {request.conversation_id}")
         

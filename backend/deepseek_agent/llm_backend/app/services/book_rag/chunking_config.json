@@ -1,0 +1,9 @@
+{
+  "profile_id": "default_chunking",
+  "target_chunk_length": 1100,
+  "max_chunk_length": 1500,
+  "chunk_soft_limit": 1620,
+  "chunk_overlap": 120,
+  "min_chunk_length": 320
+}
+

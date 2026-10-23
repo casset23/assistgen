@@ -10,8 +10,19 @@ import uuid
 import graphrag.api as api
 from graphrag.config.load_config import load_config
 from graphrag.config.enums import IndexingMethod
-from graphrag.logger.rich_progress import RichProgressLogger
 from graphrag.index.typing.pipeline_run_result import PipelineRunResult
+
+try:
+    from graphrag.logger.rich_progress import RichProgressLogger
+except ModuleNotFoundError:
+    class RichProgressLogger:
+        def __init__(self, prefix: str = "graphrag-index"):
+            self.prefix = prefix
+
+        def __getattr__(self, _name: str):
+            def _noop(*_args, **_kwargs):
+                return None
+            return _noop
 
 from app.core.config import settings
 from app.core.logger import get_logger

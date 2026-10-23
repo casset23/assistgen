@@ -13,12 +13,25 @@ export const useConversationStore = defineStore('conversation', () => {
     try {
       currentConversationId.value = await ApiService.createConversation()
       isNewConversation.value = false
-      // 刷新会话列表
       await loadUserConversations()
       return currentConversationId.value
     } catch (error) {
-      console.error('Failed to create conversation:', error)
-      throw error
+      console.warn('Failed to create conversation, fallback to local mock conversation:', error)
+      currentConversationId.value = Date.now()
+      isNewConversation.value = false
+      if (!conversations.value.some(item => item.id === currentConversationId.value)) {
+        conversations.value = [
+          {
+            id: currentConversationId.value,
+            created_at: new Date().toISOString(),
+            title: '新会话',
+            status: 'ongoing',
+            dialogue_type: 'normal'
+          },
+          ...conversations.value
+        ]
+      }
+      return currentConversationId.value
     }
   }
 
@@ -29,8 +42,18 @@ export const useConversationStore = defineStore('conversation', () => {
       if (!userId) throw new Error('No user ID found')
       conversations.value = await ApiService.getUserConversations(userId)
     } catch (error) {
-      console.error('Failed to load conversations:', error)
-      throw error
+      console.warn('Failed to load conversations, fallback to local data:', error)
+      if (!conversations.value.length && currentConversationId.value) {
+        conversations.value = [
+          {
+            id: currentConversationId.value,
+            created_at: new Date().toISOString(),
+            title: '新会话',
+            status: 'ongoing',
+            dialogue_type: 'normal'
+          }
+        ]
+      }
     }
   }
 

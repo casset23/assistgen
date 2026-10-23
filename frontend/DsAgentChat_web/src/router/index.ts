@@ -2,14 +2,25 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import EcommerceService from '../views/EcommerceService.vue'
+import KnowledgeBaseView from '../views/KnowledgeBaseView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
+      redirect: '/chat'
+    },
+    {
+      path: '/chat',
       name: 'home',
       component: Home,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/knowledge',
+      name: 'knowledge',
+      component: KnowledgeBaseView,
       meta: { requiresAuth: true }
     },
     {
@@ -20,33 +31,31 @@ const router = createRouter({
     {
       path: '/register',
       name: 'register',
-      component: Login  // 使用同一个组件
+      component: Login
     },
     {
       path: '/ecommerce',
       name: 'ecommerce',
-      component: EcommerceService
+      component: EcommerceService,
+      meta: { requiresAuth: true }
     }
   ]
 })
 
-// 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem('token')
-  
-  // 如果已登录用户访问登录或注册页，跳转到首页
+
   if ((to.path === '/login' || to.path === '/register') && token) {
-    next('/')
+    next('/chat')
     return
   }
-  
-  // 如果未登录用户访问需要认证的页面，跳转到登录页
+
   if (!token && to.path !== '/login' && to.path !== '/register') {
     next('/login')
     return
   }
-  
+
   next()
 })
 
-export default router 
+export default router

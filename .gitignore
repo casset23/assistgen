@@ -69,3 +69,17 @@ Thumbs.db
 *.bin
 *.npy
 
+
+# Local corpora, generated indexes and desktop artifacts
+**/mineru_results/
+**/cache/
+**/output/
+**/input/
+*.pdf
+*.pkl
+*.parquet
+*.zip
+
+work/
+.pytest_cache/
+/data/

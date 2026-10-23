@@ -1,0 +1,24 @@
+{
+  "profile_id": "educate_rag_book",
+  "extends": "default",
+  "low_value_section_keywords": ["参考文献", "价值导向", "哲学", "科学思想"],
+  "low_value_weak_hints": ["附录", "思考题", "习题", "练习题", "本章小结"],
+  "subtype_definition_prefixes": ["气象", "综合", "组合", "舰艇综合", "游移方位", "格林尼治格网", "参心", "地心"],
+  "cross_encoder": {
+    "enabled": false,
+    "model_name": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    "candidate_top_n": 12,
+    "score_weight": 0.18
+  },
+  "compression": {
+    "min_content_chars": 9999,
+    "max_compressed_chars": 1200,
+    "max_selected_sentences": 8
+  },
+  "rerank_weights": {
+    "main_subject_bonus": 0.1,
+    "subtype_definition_penalty": 0.08,
+    "definition_pattern_bonus": 0.1
+  }
+}
+

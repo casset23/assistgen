@@ -26,7 +26,8 @@
                 class="edit-input"
               />
             </div>
-            
+            <button type="button" @click.stop="startEditName(conversation.id, conversation.name)">重命名</button>
+            <button type="button" @click.stop="confirmDeleteConversation(conversation.id)">删除</button>
           </div>
         </li>
       </ul>
