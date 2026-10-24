@@ -16,7 +16,7 @@
 
 应用层包含聊天、会话管理、知识库上传与切换；RAG 层包含 MinerU 结果处理、FAISS 索引、稠密与稀疏候选融合、重排和引证生成。各环节通过独立服务、配置和脚本组织，支持从文档预处理到应用交互的分层开发。
 
-**技术栈：Vue 3、TypeScript、FastAPI、LangGraph、FAISS、MySQL、Redis。** GraphRAG 和 Neo4j 属于代码中的扩展路径，轻量分块示例不依赖它们。
+**技术栈：Vue 3、TypeScript、FastAPI、LangGraph、FAISS、MySQL、Redis。**
 
 ## 界面与预览
 
