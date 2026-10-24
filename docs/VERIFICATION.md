@@ -1,12 +1,28 @@
-# 验证记录
+# 测试说明
 
-本轮验证日期：2026-10-24。
+## 文档处理
 
-- Python unittest：4 个方法通过，非法配置测试内包含 8 组子用例。
-- 合成 Markdown CLI：读取公开示例并保存 JSON，实际输出随 docs/examples 提供。
-- 前端：`npm run type-check` 和 `npm run build` 通过。
-- 浏览器：直接访问 `/preview`，可见合成资料说明，新建与用于对话按钮禁用，上传入口隐藏；数据初始化分支不调用 ApiService。
-- 回归修复先复现失败：非法切分参数未被拒绝；“并发限制”完整段落在 chunk 中消失。
+```bash
+python -m pip install loguru==0.7.3
+python -m unittest discover -s tests -v
+python scripts/chunk_mineru.py examples/mineru-demo --output data/demo-chunks.json
+```
 
-未验证：完整 MySQL/Redis/模型集成、PDF/OCR、真实检索/问答效果、完整安全边界。
-示例页码只有 Markdown 估计含义。没有用截图中的合成状态作为真实索引或评测证据。
+4 个测试方法覆盖：
+
+- Markdown 处理与 JSON 保存，隔离 OCR 和 torch 依赖。
+- 分块参数合法性，包含 8 组非法配置子用例。
+- 完整段落保留，检查“并发限制”及等待队列说明进入最终 chunk。
+
+CLI 示例输出见 [demo-chunks.json](examples/demo-chunks.json)。
+
+## 前端
+
+在 `frontend/DsAgentChat_web` 执行：
+
+```bash
+npm run type-check
+npm run build
+```
+
+类型与构建检查通过。`/preview` 使用内置示例数据，禁用业务写入，支持独立查看知识库界面。
