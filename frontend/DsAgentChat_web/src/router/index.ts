@@ -8,6 +8,12 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/preview',
+      name: 'preview',
+      component: KnowledgeBaseView,
+      props: { preview: true }
+    },
+    {
       path: '/',
       redirect: '/chat'
     },
@@ -43,6 +49,10 @@ const router = createRouter({
 })
 
 router.beforeEach((to, _from, next) => {
+  if (to.name === 'preview') {
+    next()
+    return
+  }
   const token = localStorage.getItem('token')
 
   if ((to.path === '/login' || to.path === '/register') && token) {

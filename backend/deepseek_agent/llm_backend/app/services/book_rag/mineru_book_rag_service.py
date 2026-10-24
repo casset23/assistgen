@@ -190,7 +190,15 @@ class MinerUBookRAGService:
         missing = [key for key in required_keys if key not in raw]
         if missing:
             raise ValueError(f"chunking_config.json 缺少配置项: {missing}")
-        return {key: int(raw[key]) for key in required_keys}
+        if any(type(raw[key]) is not int for key in required_keys):
+            raise ValueError("chunking_config.json 参数必须为整数")
+        config = {key: raw[key] for key in required_keys}
+        if not (0 < config['min_chunk_length'] <= config['target_chunk_length']
+                <= config['max_chunk_length'] <= config['chunk_soft_limit']):
+            raise ValueError("分块长度必须满足 0 < min <= target <= max <= soft_limit")
+        if not 0 <= config['chunk_overlap'] < config['target_chunk_length']:
+            raise ValueError("chunk_overlap 必须满足 0 <= overlap < target_chunk_length")
+        return config
 
     def _extract_blocks_from_pages(self, pages: list[list[dict[str, Any]]]) -> list[MinerUBlock]:
         blocks: list[MinerUBlock] = []
@@ -988,6 +996,9 @@ class MinerUBookRAGService:
     def _looks_like_orphan_fragment(self, text: str) -> bool:
         stripped = text.strip()
         if not stripped:
+            return False
+        # 完整段落可能以“并发”“其中”等词开头，不能仅凭首字当作残句。
+        if len(stripped) > 28 and SENTENCE_END_PATTERN.search(stripped):
             return False
         if self._looks_like_titled_line(stripped):
             return False

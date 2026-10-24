@@ -4,7 +4,8 @@
       <div class="sidebar-top">
         <p class="eyebrow">知识空间</p>
         <h1>资料中心</h1>
-        <button class="create-btn" @click="createKnowledgeBase">+ 新建知识库</button>
+        <button class="create-btn" :disabled="preview" @click="createKnowledgeBase">+ 新建知识库</button>
+        <p v-if="preview" class="preview-note">只读预览 · 合成资料<br />不连接后端、不创建真实索引</p>
       </div>
 
       <div class="knowledge-base-list">
@@ -23,7 +24,7 @@
         </button>
       </div>
 
-      <RouterLink to="/chat" class="back-link">← 返回对话工作台</RouterLink>
+      <RouterLink v-if="!preview" to="/chat" class="back-link">← 返回对话工作台</RouterLink>
     </aside>
 
     <main class="knowledge-main" v-if="activeKnowledgeBase">
@@ -34,11 +35,11 @@
           <p class="desc">{{ activeKnowledgeBase.description }}</p>
         </div>
         <div class="header-actions">
-          <label class="upload-btn">
+          <label v-if="!preview" class="upload-btn">
             上传资料
             <input type="file" multiple hidden @change="handleFileChange" />
           </label>
-          <button class="primary-btn" @click="goToChat">用于对话</button>
+          <button class="primary-btn" :disabled="preview" @click="goToChat">用于对话</button>
         </div>
       </header>
 
@@ -50,8 +51,8 @@
         </div>
         <div class="overview-card">
           <span>当前索引</span>
-          <strong>{{ activeKnowledgeBase.indexId }}</strong>
-          <small>已与问答链路绑定</small>
+          <strong>{{ activeKnowledgeBase.indexId || '尚未建立' }}</strong>
+          <small>{{ preview ? '展示数据，未执行向量化' : '上传资料后由后端生成索引' }}</small>
         </div>
         <div class="overview-card">
           <span>最后更新</span>
@@ -97,8 +98,18 @@ import { RouterLink, useRouter } from 'vue-router'
 import { ApiService, type KnowledgeBaseItem, type KnowledgeDocument } from '../services/api'
 
 const router = useRouter()
-const knowledgeBases = ref<KnowledgeBaseItem[]>(ApiService.getKnowledgeBases())
-const activeKnowledgeBaseId = ref(ApiService.getActiveKnowledgeBaseId())
+const props = withDefaults(defineProps<{ preview?: boolean }>(), { preview: false })
+const knowledgeBases = ref<KnowledgeBaseItem[]>(props.preview ? [{
+  id: 'preview-space', name: 'RAG 工程资料库', category: '工程', accent: 'cyan',
+  description: '从文档结构到检索证据：教材、设计笔记与评测问题的统一入口。',
+  indexId: 'preview-only', updatedAt: '2026-01-01T08:00:00Z',
+  documents: [
+    { id: 'preview-1', name: '示例教材：文档切分与章节上下文', type: 'md', size: 4200, status: 'ready', uploadedAt: '2026-01-01T08:00:00Z' },
+    { id: 'preview-2', name: '示例笔记：混合检索与候选融合', type: 'md', size: 2800, status: 'ready', uploadedAt: '2026-01-01T08:00:00Z' },
+    { id: 'preview-3', name: '示例问题：引用可追溯性检查', type: 'json', size: 1600, status: 'processing', uploadedAt: '2026-01-01T08:00:00Z' }
+  ]
+}] : ApiService.getKnowledgeBases())
+const activeKnowledgeBaseId = ref(props.preview ? 'preview-space' : ApiService.getActiveKnowledgeBaseId())
 
 const activeKnowledgeBase = computed(
   () => knowledgeBases.value.find(base => base.id === activeKnowledgeBaseId.value) || knowledgeBases.value[0] || null
@@ -118,10 +129,11 @@ const refreshKnowledgeBases = () => {
 
 const selectKnowledgeBase = (id: string) => {
   activeKnowledgeBaseId.value = id
-  ApiService.setActiveKnowledgeBase(id)
+  if (!props.preview) ApiService.setActiveKnowledgeBase(id)
 }
 
 const createKnowledgeBase = () => {
+  if (props.preview) return
   const count = knowledgeBases.value.length + 1
   ApiService.createKnowledgeBase({
     name: `知识库 ${count}`,
@@ -151,6 +163,7 @@ const formatSize = (size: number) => {
 }
 
 const handleFileChange = async (event: Event) => {
+  if (props.preview) return
   const files = (event.target as HTMLInputElement).files
   const base = activeKnowledgeBase.value
   const userId = localStorage.getItem('user_id')
@@ -209,12 +222,15 @@ const handleFileChange = async (event: Event) => {
 }
 
 const goToChat = () => {
+  if (props.preview) return
   ApiService.setActiveKnowledgeBase(activeKnowledgeBaseId.value)
   router.push('/chat')
 }
 </script>
 
 <style scoped>
+.preview-note { color: #9ab9d6; line-height: 1.8; font-size: 13px; }
+button:disabled { cursor: default; opacity: .5; }
 :global(body) {
   margin: 0;
   font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
